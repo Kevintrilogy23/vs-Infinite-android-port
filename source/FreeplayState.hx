@@ -151,16 +151,25 @@ class FreeplayState extends MusicBeatState
 		changeDiff();
 
 		#if PRELOAD_ALL
-		var leText:String = "Press SPACE to listen to the Song / Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
+		#if android
+		var leText:String = "Press X to listen to the Song / Press C to open the Gameplay Changers Menu / Press Y to Reset your Score and Accuracy.";
 		var size:Int = 16;
 		#else
-		var leText:String = "Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
+		var leText:String = "Press SPACE to listen to the Song / Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
+		var size:Int = 16;
+		#end
+		#else
+		var leText:String = "Press C to open the Gameplay Changers Menu / Press Y to Reset your Score and Accuracy.";
 		var size:Int = 18;
 		#end
-		var text:FlxText = new FlxText(0, FlxG.height - 25, FlxG.width - 5, leText, size);
-		text.setFormat(Paths.font("futura.otf"), size, FlxColor.WHITE, RIGHT);
-		text.antialiasing = ClientPrefs.globalAntialiasing;
+		var text:FlxText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, leText, size);
+		text.setFormat(Paths.font("vcr.ttf"), size, FlxColor.WHITE, RIGHT);
+		text.scrollFactor.set();
 		add(text);
+
+                #if android
+                addVirtualPad(FULL, A_B_C_X_Y_Z);
+                #end
 
 		for (item in grpSongs.members)
 		{
@@ -267,9 +276,12 @@ class FreeplayState extends MusicBeatState
 		}
 
 		if(ctrl)
-		{
+		{#if android
+			removeVirtualPad();
+			#end
 			persistentUpdate = false;
 			openSubState(new GameplayChangersSubstate());
+		}
 		}
 		else if(space)
 		{
@@ -321,7 +333,11 @@ class FreeplayState extends MusicBeatState
 					
 			destroyFreeplayVocals();
 		}
-		else if(controls.RESET)
+		else if(controls.RESET #if android || _virtualpad.buttonY.justPressed #end)
+		{
+			#if android
+			removeVirtualPad();
+			#end
 		{
 			persistentUpdate = false;
 			openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
