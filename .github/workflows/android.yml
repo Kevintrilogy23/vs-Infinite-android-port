@@ -1,0 +1,55 @@
+name: Build Psych Engine Android
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Setup Haxe
+      uses: krdlab/setup-haxe@v1
+      with:
+        haxe-version: 4.2.5
+
+    - name: Install dependencies
+      run: |
+        haxelib setup ~/haxelib
+        haxelib install lime
+        haxelib install openfl
+        haxelib install flixel
+        haxelib install flixel-addons
+        haxelib install flixel-ui
+        haxelib install hxcpp
+        haxelib install tjson
+        haxelib install hxjsonast
+
+    - name: Install Android SDK + NDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 30
+        ndk-version: 21.4.7075529
+        cmake-version: 3.10.2.4988404
+
+    - name: Build APK
+      run: |
+        haxelib run lime build android -release
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: psych-engine-apk
+        path: export/release/android/bin/app/build/outputs/apk/release/*.apk
